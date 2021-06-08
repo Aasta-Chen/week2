@@ -101,16 +101,56 @@
 
           const app = {
             data:{
+              products:[],
+            },
+            getData(){
+              axios.get(`${url}api/${path}/admin/products`)
+              .then(res =>{
+                console.log(res);
+                if (res.data.success){
+                  this.data.products = res.data.products;
+                  console.log(this.data.products);
+                  this.render();
+                }
+              })
 
+            },
+            render(){
+              const productListDom = document.querySelector('#productList');
+              let template = '';
+              this.data.products.forEach((item) =>{
+                template = template +`
+                <tr>
+                  <td>${item.title}</td>
+                  <td>${item.origin_price}</td>
+                  <td>${item.price}</td>
+                  <td>${item.is_enabled}</td>
+                  <td><button type="button" data-id="${item.id}" class="del">刪除</button></td>
+                </tr>
+                `;
+                productListDom.innerHTML = template;
+                const deleteBtns = document.querySelectorAll('.del');
+                deleteBtns.forEach(btn => {
+                  btn.addEventListener('click', this.deleteProduct);
+                })
+              
+              });
+            },
+            deleteProduct(evt){
+              const id = evt.target.dataset.id;
+              console.log('deleteProduct',evt,id);
+              axios.delete(`${url}api/${path}/admin/products/${id}`)
+              .then(res =>{
+                console.log(res);
+                app.getData();
+              })
             },
             init(){
               // cookie 取出來
               const token = document.cookie.replace(/(?:(?:^|.*;\s*)hexToken\s*\=\s*([^;]*).*$)|^.*$/, "$1");
               axios.defaults.headers.common['Authorization'] = token;
-              axios.post(`${url}api/user/check`)
-              .then(res =>{
-                console.log(res);
-              })
+              // 針對同一個站點
+              this.getData();
             }
           }
 
